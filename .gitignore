@@ -1,7 +1,15 @@
 
 .gradle
 .idea
+.clion
 .vs
+.vscode
+.settings
+.classpath
+.project
 venv
 run
 out
+bin
+build
+cmake-build-debug
