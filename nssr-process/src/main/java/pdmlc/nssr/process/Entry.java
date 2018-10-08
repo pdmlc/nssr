@@ -121,7 +121,20 @@ class Entry {
         String fingerprintJson = JSONObject.toJSONString(fingerprintMap) + '\n';
         byte[] fingerprintBytes = fingerprintJson.getBytes(StandardCharsets.UTF_8);
 
-        byte[][] bytes = new byte[][]{metaBytes, peakBytes, smileBytes, fingerprintBytes};
+        Map<String, Object> allMap = new HashMap<>();
+        allMap.put("id", id);
+        allMap.put("name", dbName);
+        allMap.put("solvent", solvent);
+        allMap.put("spectrum", observeNucleus);
+        allMap.put("peaks", peaks.stream().map(peak -> peak.xValue).collect(Collectors.toList()));
+        allMap.put("smile", smile);
+        allMap.put("fingerprint", Arrays.stream(fingerprint.toLongArray())
+                                        .boxed()
+                                        .collect(Collectors.toList()));
+        String allJson = JSONObject.toJSONString(allMap) + '\n';
+        byte[] allBytes = allJson.getBytes(StandardCharsets.UTF_8);
+
+        byte[][] bytes = new byte[][]{metaBytes, peakBytes, smileBytes, fingerprintBytes, allBytes};
 
         dbProcessor.writeBytes(bytes);
     }

@@ -17,6 +17,7 @@ class DBProcessor {
     private static final String peakBase = "peak_records";
     private static final String smileBase = "smile_records";
     private static final String fingerprintBase = "fingerprint_records";
+    private static final String allBase = "all_records";
 
     private InputStream nmrshiftdb;
 
@@ -24,9 +25,10 @@ class DBProcessor {
     private OutputStream peakRecords;
     private OutputStream smileRecords;
     private OutputStream fingerprintRecords;
+    private OutputStream allRecords;
 
-    private String[] recordBases = new String[]{metaBase, peakBase, smileBase, fingerprintBase};
-    private OutputStream[] recordStreams = new OutputStream[4];
+    private String[] recordBases = new String[]{metaBase, peakBase, smileBase, fingerprintBase, allBase};
+    private OutputStream[] recordStreams = new OutputStream[5];
 
     DBProcessor() throws IOException {
         initStreams();
