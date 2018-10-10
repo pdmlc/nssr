@@ -11,13 +11,13 @@ import java.io.IOException;
 
 public class Process {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         process();
 
     }
 
-    static void process() {
+    static void process() throws IOException {
 
         try {
 
@@ -35,7 +35,7 @@ public class Process {
             dbProcessor.flushStreams();
             dbProcessor.closeStreams();
 
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+        } catch (ParserConfigurationException | SAXException e) {
             e.printStackTrace();
         }
 
