@@ -103,7 +103,7 @@ class Entry {
 
         Map<String, Object> peakMap = new HashMap<>();
         peakMap.put("id", id);
-        peakMap.put("peaks", peaks.stream().map(peak -> peak.xValue).collect(Collectors.toList()));
+        peakMap.put("peaks", peaksToCondensedBitSet());
         String peakJson = JSONObject.toJSONString(peakMap) + '\n';
         byte[] peakBytes = peakJson.getBytes(StandardCharsets.UTF_8);
 
@@ -115,9 +115,7 @@ class Entry {
 
         Map<String, Object> fingerprintMap = new HashMap<>();
         fingerprintMap.put("id", id);
-        fingerprintMap.put("fingerprint", Arrays.stream(fingerprint.toLongArray())
-                                                .boxed()
-                                                .collect(Collectors.toList()));
+        fingerprintMap.put("fingerprint", fingerprintsToCondensedBitSet());
         String fingerprintJson = JSONObject.toJSONString(fingerprintMap) + '\n';
         byte[] fingerprintBytes = fingerprintJson.getBytes(StandardCharsets.UTF_8);
 
@@ -126,11 +124,9 @@ class Entry {
         allMap.put("name", dbName);
         allMap.put("solvent", solvent);
         allMap.put("spectrum", observeNucleus);
-        allMap.put("peaks", peaks.stream().map(peak -> peak.xValue).collect(Collectors.toList()));
+        allMap.put("peaks", peaksToCondensedBitSet());
         allMap.put("smile", smile);
-        allMap.put("fingerprint", Arrays.stream(fingerprint.toLongArray())
-                                        .boxed()
-                                        .collect(Collectors.toList()));
+        allMap.put("fingerprint", fingerprintsToCondensedBitSet());
         String allJson = JSONObject.toJSONString(allMap) + '\n';
         byte[] allBytes = allJson.getBytes(StandardCharsets.UTF_8);
 
@@ -153,6 +149,29 @@ class Entry {
         result.peaks = new ArrayList<>();
 
         return result;
+    }
+
+    private List<Long> peaksToCondensedBitSet() {
+        try {
+            return Arrays.stream(peaks.stream()
+                                      .map(peak -> peak.xValue)
+                                      .collect(() -> new BitSet(1 << 12),
+                                               (s, f) -> s.set((int) (f * 10)),
+                                               BitSet::or)
+                                      .toLongArray())
+                         .boxed()
+                         .collect(Collectors.toList());
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("id: "+id);
+            return new ArrayList<>();
+        }
+
+    }
+
+    private List<Long> fingerprintsToCondensedBitSet() {
+        return Arrays.stream(fingerprint.toLongArray())
+                     .boxed()
+                     .collect(Collectors.toList());
     }
 
 }
