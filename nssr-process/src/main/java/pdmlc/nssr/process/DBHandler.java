@@ -22,6 +22,7 @@ class DBHandler extends DefaultHandler {
 
     private Entry activeEntry;
     private int entryID = 0;
+    private boolean negShift = false;
 
 
     DBHandler(DBProcessor dbProcessor) {
@@ -85,7 +86,8 @@ class DBHandler extends DefaultHandler {
     }
 
     private void startMolecule(Attributes attributes) {
-        activeEntry = new Entry(++entryID);
+        activeEntry = new Entry(negShift ? entryID : ++entryID);
+        negShift = false;
         for (int i = 0; i < attributes.getLength(); i++) {
             if (attributes.getLocalName(i).equals("title")) {
                 activeEntry.dbName = attributes.getValue(i);
@@ -99,13 +101,16 @@ class DBHandler extends DefaultHandler {
 
     private void startSpectrum(Attributes attributes) {
         if (!activeEntry.peaks.isEmpty()) {
-            activeEntry = activeEntry.wipeSpectra();
-            activeEntry.id = ++entryID;
+            activeEntry = activeEntry.wipeSpectrum();
+            activeEntry.id = negShift ? entryID : ++entryID;
+            negShift = false;
         }
     }
 
     private void endSpectrum() {
-        queue.push(activeEntry);
+        if (!negShift) {
+            queue.push(activeEntry);
+        }
     }
 
     private void addAtom(Attributes attributes) {
@@ -158,6 +163,7 @@ class DBHandler extends DefaultHandler {
     private void addPeak(Attributes attributes) {
         if (attributes == null || activeEntry == null) return;
         float xValue = Float.parseFloat(attributes.getValue("xValue"));
+        negShift |= xValue < 0;
         String multiplicity = attributes.getValue("peakMultiplicity");
         String shape = attributes.getValue("peakShape");
         String id = attributes.getValue("id");

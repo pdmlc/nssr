@@ -135,7 +135,7 @@ class Entry {
         dbProcessor.writeBytes(bytes);
     }
 
-    Entry wipeSpectra() {
+    Entry wipeSpectrum() {
         Entry result = new Entry();
 
         result.atoms = new ArrayList<>(this.atoms);
