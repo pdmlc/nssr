@@ -9,7 +9,7 @@ import java.nio.file.StandardOpenOption;
 
 class DBProcessor {
 
-    static final int FP_DIM = 1 << 16;
+    static final int FP_DIM = 1 << 14;
 
     private static final String recordPath = "records";
     private static final String recordExt = ".json";
