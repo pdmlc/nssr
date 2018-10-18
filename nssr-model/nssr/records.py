@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import json
+import datetime
 
 
 def build_dataset(record, map):
@@ -51,6 +52,7 @@ def decomp_word(word):
 
 
 if __name__ == '__main__':
+    print(datetime.datetime.today().strftime('%Y-%m-%d_T%H.%M.%S.%f'))
 
     dataset = build_dataset("records/filtered/all_records_filtered_1H.json", fingerprint_map)
 
@@ -59,23 +61,36 @@ if __name__ == '__main__':
     sz = 17027
     tf.logging.set_verbosity(tf.logging.DEBUG)
 
-    train = dataset.take(int(0.9 * sz))
-    test = dataset.take(int(0.1 * sz))
+    train = dataset.take(int(0.9 * sz)).batch(32)
+    test = dataset.take(int(0.1 * sz)).batch(32)
 
     print("dataset", dataset)
     print("train", train.output_shapes)
     print("test", test.output_shapes)
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(1 << 13, activation=tf.nn.relu, input_dim=(1 << 14)),
-        tf.keras.layers.Dense(1 << 12, activation=tf.nn.relu),
+        tf.keras.layers.Dense(1 << 13,
+                              activation='relu',
+                              kernel_initializer='zeros',
+                              bias_initializer='zeros',
+                              input_shape=(1, 1 << 14),
+                              batch_size=32
+                              ),
+        tf.keras.layers.Dense(1 << 12,
+                              activation='relu',
+                              kernel_initializer='zeros',
+                              bias_initializer='zeros',
+                              ),
     ])
 
-    model.compile(optimizer=tf.train.AdamOptimizer(0.01),
-                  loss='mse',
-                  metrics=['mae'])
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr=0.01),
+                  loss=tf.keras.losses.cosine_proximity,
+                  metrics=[tf.keras.losses.cosine_proximity, 'acc'])
     model.summary()
-    model.fit(train, epochs=10, steps_per_epoch=30)
-    model.eval(test, steps=30)
+    model.fit(train, epochs=12, steps_per_epoch=432)
+    model.save('nssr_fp201_{}.hd5'.format(datetime.datetime.today().strftime('%Y-%m-%d_T%H.%M.%S.%f')))
 
+    # model = tf.keras.models.load_model('nssr_fp201_2018-10-17_T23.58.39.125514.hd5')
 
+    score = model.evaluate(test, steps=50, verbose=1)
+    print(score)
