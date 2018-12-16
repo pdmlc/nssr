@@ -4,12 +4,12 @@ import json
 import datetime
 
 
-def build_dataset(record, map):
+def build_dataset(record: str, map) -> tf.data.TextLineDataset:
     return tf.data.TextLineDataset([record]).map(map)
 
 
-def json_map(json_str, feature_label):
-    json_data = json.loads(json_str)
+def json_map(json_str: str, feature_label: str):
+    json_data: dict = json.loads(json_str)
     peaks = decomp_bitset(json_data["peaks"]).flatten()
     peaks.resize((1 << 12,), refcheck=False)
     features = json_data[feature_label]
@@ -37,15 +37,15 @@ def fingerprint_map(tensor):
     return result
 
 
-def decomp_bitset(bitset):
-    result = np.ndarray((len(bitset), 64), dtype=np.float32)
+def decomp_bitset(bitset: list) -> np.ndarray:
+    result: np.ndarray = np.ndarray((len(bitset), 64), dtype=np.float32)
     for n in range(len(bitset)):
         result[n] = decomp_word(bitset[n])
     return result
 
 
-def decomp_word(word):
-    result = np.empty(64, dtype=np.float32)
+def decomp_word(word: int) -> np.ndarray:
+    result: np.ndarray = np.empty(64, dtype=np.float32)
     for n in range(64):
         result[n] = bool((word & (1 << n)) != 0)
     return result
@@ -54,21 +54,21 @@ def decomp_word(word):
 if __name__ == '__main__':
     print(datetime.datetime.today().strftime('%Y-%m-%d_T%H.%M.%S.%f'))
 
-    dataset = build_dataset("records/filtered/all_records_filtered_1H.json", fingerprint_map)
+    dataset: tf.data.TextLineDataset = build_dataset("records/filtered/all_records_filtered_1H.json", fingerprint_map)
 
     dataset.shuffle(1 << 12)
 
-    sz = 17027
+    sz: int = 17027
     tf.logging.set_verbosity(tf.logging.DEBUG)
 
-    train = dataset.take(int(0.9 * sz)).batch(32)
-    test = dataset.take(int(0.1 * sz)).batch(32)
+    train: tf.data.Dataset = dataset.take(int(0.9 * sz)).batch(32)
+    test: tf.data.Dataset = dataset.take(int(0.1 * sz)).batch(32)
 
     print("dataset", dataset)
     print("train", train.output_shapes)
     print("test", test.output_shapes)
 
-    model = tf.keras.models.Sequential([
+    model: tf.keras.models.Sequential = tf.keras.models.Sequential([
         tf.keras.layers.Dense(1 << 13,
                               activation='relu',
                               kernel_initializer='zeros',
